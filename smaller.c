@@ -91,8 +91,8 @@ int make_it_smaller(const char* filename)
 
     unsigned char* image = stbi_load(filename, &width, &height, &channels, 0);
 
-    int new_width = width / 2;
-    int new_height = height / 2;
+    int new_width  = width / 2 + 1;
+    int new_height = height / 2 + 1;
 
     unsigned char* resized_image = (unsigned char*)malloc(new_width * new_height * channels);
 
@@ -165,7 +165,7 @@ void usage(void)
 {
     printf("ERROR: Not enough arguments.\n"
            "USAGE: smaller <skin directory>\n"
-           "Create 1x skin elements from 2x elements.\n"
+           "Create osu! @1x skin elements from @2x elements.\n"
            "%s (c) toiletbril <https://github.com/toiletbril>\n", VERSION);
     exit(1);
 }
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
         put_error("Something went wrong", argv[1]);
     }
 
-    printf("Successfully converted %s.", argv[1]);
+    printf("Successfully created @1x skin elements from %s.", argv[1]);
 
     return 0;
 }

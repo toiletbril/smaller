@@ -1,7 +1,7 @@
 # smaller
 **Only Windows for now**
 
-Make 1x skin elements from 2x ones.
+Creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element. Should work with `@2x.jpg` too.
 
 ## Usage:
 ```console
