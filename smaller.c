@@ -126,7 +126,7 @@ int smaller_dir(const char* dir_path)
     HANDLE hfind;
     WIN32_FIND_DATA file;
 
-    const char dir_wildcard[512];
+    char dir_wildcard[512];
     strcpy(dir_wildcard, dir_path);
     strcat(dir_wildcard, "/*");
 
@@ -157,8 +157,8 @@ int smaller_dir(const char* dir_path)
 }
 #else
     printf("Linux is TODO :3\n");
-    return 0;
 #endif
+    return 0;
 }
 
 void usage(void)
