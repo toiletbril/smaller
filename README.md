@@ -1,10 +1,10 @@
 # smaller
 
-Creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element in an osu! skin. Supports both `jpg` and `png`.
+Creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element in an osu! skin. Supports both `jpg` and `png`, outputs `png`.
 
 ## Usage:
 ```console
-$ smaller <path to skin>
+$ smaller <path to osu! skin>
 ```
 
 ## Building
