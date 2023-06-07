@@ -1,6 +1,6 @@
 # smaller
 
-Creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element. Should work with `@2x.jpg` too.
+Creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element in an osu! skin. Supports both `jpg` and `png`.
 
 ## Usage:
 ```console
