@@ -155,7 +155,6 @@ static int smaller_file(const char *file_path)
     ok = stbi_write_png(new_file_path, new_width, new_height, channels,
                         resized_image, 0);
 
-
     if (!ok) {
         put_error("Failed to write output image", new_file_path);
     }
@@ -273,10 +272,18 @@ static void help(void)
            "outputs `png`.\n"
            "\n"
            "FLAGS:\n"
-           "\t-o, --overwrite\t\tOverwrite existing files.\n\n"
-           "%s (c) toiletbril %s\n",
-           PROGRAM_NAME, VERSION, GITHUB);
+           "\t-o, --overwrite\t\tOverwrite existing files.\n"
+           "\t    --help     \t\tDisplay this menu.\n"
+           "\t    --version  \t\tDisplay version.\n",
+           PROGRAM_NAME);
     exit(1);
+}
+
+static void version(void)
+{
+    printf("%s %s\n"
+           "(c) toiletbril %s\n",
+           PROGRAM_NAME, VERSION, GITHUB);
 }
 
 static int set_flag(const char *str)
@@ -301,9 +308,7 @@ static int set_flag(const char *str)
                     overwrite = true;
                 }
                 else if (strcmp(str, "--version") == 0) {
-                    printf("smaller %s\n"
-                           "(c) toiletbril %s\n",
-                           VERSION, GITHUB);
+                    version();
                     exit(0);
                 }
                 else {
