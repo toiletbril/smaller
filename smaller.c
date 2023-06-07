@@ -10,7 +10,7 @@
     #include <sys/stat.h>
 #endif
 
-#define VERSION "0.1"
+#define VERSION "0.2"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb/stb_image_resize.h"
@@ -25,7 +25,7 @@ void put_error(const char* m, const char* filename)
     exit(1);
 }
 
-int get_file_ext(const char* filename, size_t size, char* buf)
+int get_file_ext(const char *filename, size_t size, char *buf)
 {
     size_t len = strlen(filename);
     for (size_t i = len - 1; i != 0; --i) {
@@ -36,6 +36,8 @@ int get_file_ext(const char* filename, size_t size, char* buf)
                 if (k >= size) return 0;
                 buf[k++] = filename[i];
             }
+
+            buf[k] = '\0';
             return 1;
         }
     }
@@ -43,31 +45,30 @@ int get_file_ext(const char* filename, size_t size, char* buf)
     return 0;
 }
 
-int is_twox_image(const char* filename)
+int is_twox_image(const char *filename)
 {
-    int len = strlen(filename);
-    if (len - 7 <= 0) return 0;
-
-    if (filename[len - 7] == '@') {
-        return 1;
+    const char* ext = strrchr(filename, '.');
+    if (ext != NULL && strlen(ext) > 3) {
+        const char* twox = ext - 3;
+        if (strncmp(twox, "@2x", 3) == 0) {
+            return 1;
+        }
     }
-
     return 0;
 }
 
-int resized_filename(const char* filename, size_t size, char* buf)
+int resized_filename(const char *filename, size_t size, char *buf)
 {
-    // button-left@2x.png
     int len = strlen(filename);
+    char *twox_index = strstr(filename, "@2x");
 
-    if (len - 7 <= 0) return 0;
+    if (twox_index != NULL) {
+        size_t k = 0;
+        size_t pos = twox_index - filename;
 
-    if (filename[len - 7] == '@') {
-        int k = 0;
-
-        for (int i = 0; i < len; ++i) {
-            if ((size_t)k >= size) return 0;
-            if (i == len - 7) i += 3;
+        for (size_t i = 0; i < len - 3; ++i) {
+            if (k >= size) return 0;
+            if (i == pos) i += 3;
             buf[k++] = filename[i];
         }
 
@@ -78,7 +79,49 @@ int resized_filename(const char* filename, size_t size, char* buf)
     return 0;
 }
 
-int make_it_smaller(const char* filename)
+int is_skin_folder(const char* dir_path) {
+#ifdef _WIN32
+    HANDLE hfind;
+    WIN32_FIND_DATA file;
+
+    char dir_wildcard[512];
+    strcpy(dir_wildcard, dir_path);
+    strcat(dir_wildcard, "/*");
+
+    if((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
+    do {
+            if (strcmp(file.cFileName, "skin.ini") == 0) {
+                FindClose(hfind);
+                return 1;
+            }
+    } while (FindNextFile(hfind, &file));
+
+    FindClose(hfind);
+    }
+#else
+    DIR* dir;
+    dir = opendir(dir_path);
+
+    if (dir == NULL) {
+        perror(dir_path);
+        exit(1);
+    }
+
+    struct dirent* entry;
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, "skin.ini") == 0) {
+            closedir(dir);
+            return 1;
+        }
+    }
+
+    closedir(dir);
+#endif
+    return 0;
+}
+
+int make_it_smaller(const char *filename)
 {
     int width, height, channels, ok;
     ok = stbi_info(filename, &width, &height, &channels);
@@ -120,7 +163,7 @@ int make_it_smaller(const char* filename)
     return 1;
 }
 
-int smaller_dir(const char* dir_path)
+int smaller_dir(const char *dir_path)
 {
 #ifdef _WIN32
     HANDLE hfind;
@@ -133,8 +176,7 @@ int smaller_dir(const char* dir_path)
     char filename[512];
 
     if((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
-    do {
-        if (strcmp(file.cFileName, ".") != 0 && strcmp(file.cFileName, "..") != 0) {
+        do {
             sprintf(filename, "%s/%s", dir_path, file.cFileName);
 
             char ext[16];
@@ -142,23 +184,46 @@ int smaller_dir(const char* dir_path)
 
             if (strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0) {
                 if (!is_twox_image(filename)) continue;
-
                 int ok = make_it_smaller(filename);
                 if (!ok) {
                     put_error("Failed to generate resized image", file.cFileName);
                 }
             }
-        }
-    } while (FindNextFile(hfind, &file));
-
+        } while (FindNextFile(hfind, &file));
     FindClose(hfind);
-
-    return 1;
-}
+    }
 #else
-    printf("Linux is TODO :3\n");
+    DIR *dir;
+    dir = opendir(dir_path);
+
+    if (dir == NULL) {
+        perror(dir_path);
+        exit(1);
+    }
+
+    struct dirent *entry;
+    char filename[512];
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            sprintf(filename, "%s/%s", dir_path, entry->d_name);
+
+            char ext[16];
+            get_file_ext(filename, 16, ext);
+
+            if (strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0) {
+                if (!is_twox_image(filename)) continue;
+                int ok = make_it_smaller(filename);
+                if (!ok) {
+                    put_error("Failed to generate resized image", entry->d_name);
+                }
+            }
+        }
+    }
+
+    closedir(dir);
 #endif
-    return 0;
+    return 1;
 }
 
 void usage(void)
@@ -170,18 +235,43 @@ void usage(void)
     exit(1);
 }
 
-int main(int argc, char** argv)
+int concat_args(int argc, char **argv, size_t size, char *buf)
 {
-    if (argc != 2) usage();
+    size_t k = 0;
+    for (int i = 1; i < argc; ++i) {
+        size_t len = strlen(argv[i]);
 
-    const char* dir_path = argv[1];
+        if (k >= size) return 0;
+        if (i > 1) buf[k++] = ' ';
+
+        for (size_t j = 0; j < len; ++j) {
+            if (k >= size) return 0;
+            buf[k++] = argv[i][j];
+        }
+    }
+
+    buf[k] = '\0';
+    return 1;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc < 2) usage();
+
+    char dir_path[512];
+    concat_args(argc, argv, 512, dir_path);
+
+    if (!is_skin_folder(dir_path)) {
+        put_error("Is not a skin folder", dir_path);
+    }
+
     int ok = smaller_dir(dir_path);
 
     if (!ok) {
         put_error("Something went wrong", argv[1]);
     }
 
-    printf("Successfully created @1x skin elements from %s.", argv[1]);
+    printf("Successfully created @1x skin elements from %s.\n", argv[1]);
 
     return 0;
 }
