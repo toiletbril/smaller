@@ -19,4 +19,4 @@ Windows (requires `MinGW/Clang`)
 > ./build.bat
 ```
 
-[stb headers source](https://github.com/nothings/stb) :3c
+awesome [stb headers source](https://github.com/nothings/stb) :3c

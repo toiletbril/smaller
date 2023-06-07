@@ -19,7 +19,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#define VERSION "0.5"
+#define VERSION "0.6"
 #define GITHUB "<https://github.com/toiletbril>"
 
 static bool overwrite = false;
@@ -27,7 +27,7 @@ static bool overwrite = false;
 static size_t files_created = 0;
 static size_t files_skipped = 0;
 
-static void put_error(const char *m, const char *filename)
+static inline void put_error(const char *m, const char *filename)
 {
     fprintf(stderr, "%s: %s: %s\n", PROGRAM_NAME, filename, m);
     exit(1);
@@ -114,7 +114,6 @@ static bool is_skin_folder(const char *dir_path)
 static int smaller_file(const char *file_path)
 {
     int width, height, channels, ok;
-    ok = stbi_info(file_path, &width, &height, &channels);
 
     char new_file_path[128];
     resized_filename(file_path, 128, new_file_path);
@@ -129,6 +128,8 @@ static int smaller_file(const char *file_path)
 
     printf("Resizing %s...\n", file_path);
 
+    ok = stbi_info(file_path, &width, &height, &channels);
+
     if (!ok) {
         put_error(stbi_failure_reason(), file_path);
     }
@@ -142,21 +143,20 @@ static int smaller_file(const char *file_path)
     if (new_height <= 0)
         new_height = 1;
 
-    unsigned char *resized_image =
-        (unsigned char *)malloc(new_width * new_height * channels);
+    unsigned char *resized_image = (unsigned char *)malloc(new_width * new_height * channels);
 
     ok = stbir_resize_uint8(image, width, height, 0, resized_image, new_width,
                             new_height, 0, channels);
 
     if (!ok) {
-        put_error(stbi_failure_reason(), file_path);
+        put_error("Could not resize image", file_path);
     }
 
     ok = stbi_write_png(new_file_path, new_width, new_height, channels,
                         resized_image, 0);
 
     if (!ok) {
-        put_error("Failed to write output image", new_file_path);
+        put_error("Failed to write resized image", new_file_path);
     }
 
     ++files_created;
@@ -265,7 +265,7 @@ static int concat_args(int argc, char **argv, size_t size, char *buf)
     return 1;
 }
 
-static void help(void)
+static inline void help(void)
 {
     printf("USAGE: %s <skin directory>\n"
            "Create @1x osu! skin elements from @2x elements. Works with `png` and `jpg`, "
@@ -276,10 +276,9 @@ static void help(void)
            "\t    --help     \t\tDisplay this menu.\n"
            "\t    --version  \t\tDisplay version.\n",
            PROGRAM_NAME);
-    exit(1);
 }
 
-static void version(void)
+static inline void version(void)
 {
     printf("%s %s\n"
            "(c) toiletbril %s\n",
@@ -357,6 +356,7 @@ int main(int argc, char **argv)
         put_error("Something went wrong while traversing directory", argv[1]);
     }
 
-    printf("%s: Successfully traversed %s.\nFiles created: %zu, skipped: %zu.\n", PROGRAM_NAME, argv[1], files_created, files_skipped);
+    printf("%s: Successfully traversed %s.\nFiles created: %zu, skipped: %zu.\n",
+           PROGRAM_NAME, dir_path, files_created, files_skipped);
     return 0;
 }
