@@ -208,11 +208,11 @@ void smaller_dir(const char *dir_path)
     }
 
     struct dirent *entry;
-    char filename[MAX_PATH];
+    char file_path[MAX_PATH];
 
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG) {
-            int count = snprintf(filename, MAX_PATH, "%s/%s", dir_path, entry->d_name);
+            int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, entry->d_name);
 
             if (count >= MAX_PATH) {
                 put_error("File path is too long", entry->d_name);
@@ -222,14 +222,14 @@ void smaller_dir(const char *dir_path)
                 put_error("Invalid characters in file path", file_path);
             }
 
-            const char *extension = file_extension(filename);
+            const char *extension = file_extension(file_path);
             if (extension == NULL)
                 continue;
 
             if (strcmp(extension, "png") == 0 || strcmp(extension, "jpg") == 0) {
-                if (!is_twox_image(filename))
+                if (!is_twox_image(file_path))
                     continue;
-                smaller_file(filename);
+                smaller_file(file_path);
             }
         }
     }
