@@ -179,13 +179,9 @@ void smaller_dir(const char *dir_path)
 
     if ((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
         do {
-            int ok = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
+            int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
 
-            if (ok >= MAX_PATH) {
-                put_error("File path is too long", file.cFileName);
-            }
-
-            if (ok < 0) {
+            if (count < 0) {
                 put_error("Invalid characters in file path", file_path);
             }
 
@@ -216,7 +212,15 @@ void smaller_dir(const char *dir_path)
 
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG) {
-            sprintf(filename, "%s/%s", dir_path, entry->d_name);
+            int count = snprintf(filename, MAX_PATH, "%s/%s", dir_path, entry->d_name);
+
+            if (count >= MAX_PATH) {
+                put_error("File path is too long", entry->d_name);
+            }
+
+            if (count < 0) {
+                put_error("Invalid characters in file path", file_path);
+            }
 
             const char *extension = file_extension(filename);
             if (extension == NULL)
@@ -329,7 +333,8 @@ static bool set_flag(const char *str)
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "ERROR: Not enough arguments. Try '--help' for more information.\n");
+        fprintf(stderr, "%s: ERROR: Not enough arguments. Try '--help' for more information.\n",
+                PROGRAM_NAME);
         exit(1);
     }
 
@@ -338,7 +343,11 @@ int main(int argc, char **argv)
     }
 
     char dir_path[MAX_PATH];
-    concat_args(argc, argv, MAX_PATH, dir_path);
+    if(!concat_args(argc, argv, MAX_PATH, dir_path)) {
+        fprintf(stderr, "%s: ERROR: File path is too long.\n",
+                PROGRAM_NAME);
+        exit(1);
+    };
 
     if (!is_skin_folder(dir_path)) {
         put_error("Is not a skin folder", dir_path);
