@@ -1,16 +1,14 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdio.h>
-
 #ifdef _WIN32
+    #define PROGRAM_NAME "smaller.exe"
     #define _CRT_SECURE_NO_WARNINGS
     #include <Windows.h>
 #else
+    #define PROGRAM_NAME "smaller"
     #include <dirent.h>
-    #include <sys/stat.h>
 #endif
 
-#define VERSION "0.2"
+#include <stdio.h>
+#include <string.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb/stb_image_resize.h"
@@ -18,6 +16,8 @@
 #include "stb/stb_image_write.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
+
+#define VERSION "0.3"
 
 void put_error(const char* m, const char* filename)
 {
@@ -66,7 +66,7 @@ int resized_filename(const char *filename, size_t size, char *buf)
         size_t k = 0;
         size_t pos = twox_index - filename;
 
-        for (size_t i = 0; i < len - 3; ++i) {
+        for (size_t i = 0; i < len; ++i) {
             if (k >= size) return 0;
             if (i == pos) i += 3;
             buf[k++] = filename[i];
@@ -134,22 +134,21 @@ int make_it_smaller(const char *filename)
 
     unsigned char* image = stbi_load(filename, &width, &height, &channels, 0);
 
-    int new_width  = width / 2 + 1;
-    int new_height = height / 2 + 1;
+    int new_width  = width / 2;
+    if (new_width <= 0) new_width = 1;
+    int new_height = height / 2;
+    if (new_height <= 0) new_height = 1;
 
     unsigned char* resized_image = (unsigned char*)malloc(new_width * new_height * channels);
 
-    stbir_resize_uint8(image, width, height, 0, resized_image, new_width, new_height, 0, channels);
-
-    char new_filename[128];
-    ok = resized_filename(filename, 128, new_filename);
+    ok = stbir_resize_uint8(image, width, height, 0, resized_image, new_width, new_height, 0, channels);
 
     if (!ok) {
-        put_error("resized_filename failed", filename);
+        put_error(stbi_failure_reason(), filename);
     }
 
-    char extension[16];
-    get_file_ext(filename, 16, extension);
+    char new_filename[128];
+    resized_filename(filename, 128, new_filename);
 
     ok = stbi_write_png(new_filename, new_width, new_height, channels, resized_image, 0);
 
@@ -229,9 +228,9 @@ int smaller_dir(const char *dir_path)
 void usage(void)
 {
     printf("ERROR: Not enough arguments.\n"
-           "USAGE: smaller <skin directory>\n"
-           "Create osu! @1x skin elements from @2x elements.\n"
-           "%s (c) toiletbril <https://github.com/toiletbril>\n", VERSION);
+           "USAGE: %s <skin directory>\n"
+           "Create osu! @1x skin elements from @2x elements. Works with `png` and `jpg`.\n"
+           "%s (c) toiletbril <https://github.com/toiletbril>\n", PROGRAM_NAME, VERSION);
     exit(1);
 }
 
@@ -272,6 +271,5 @@ int main(int argc, char **argv)
     }
 
     printf("Successfully created @1x skin elements from %s.\n", argv[1]);
-
     return 0;
 }
