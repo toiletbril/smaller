@@ -1,9 +1,11 @@
 #ifdef _WIN32
     #define PROGRAM_NAME "smaller.exe"
+    #define MAX_PATH 256
     #define _CRT_SECURE_NO_WARNINGS
     #include <Windows.h>
 #else
     #define PROGRAM_NAME "smaller"
+    #define MAX_PATH 1024
     #include <dirent.h>
     #include <sys/stat.h>
 #endif
@@ -19,10 +21,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#define VERSION "0.6"
+#define VERSION "0.7"
 #define GITHUB "<https://github.com/toiletbril>"
 
-static bool overwrite = false;
+static bool flag_overwrite = false;
 
 static size_t files_created = 0;
 static size_t files_skipped = 0;
@@ -62,7 +64,7 @@ static bool is_twox_image(const char *filename)
     return false;
 }
 
-static int resized_filename(const char *filename, size_t size, char *buf)
+static bool resized_filename(const char *filename, size_t size, char *buf)
 {
     int len          = strlen(filename);
     char *twox_index = strstr(filename, "@2x");
@@ -73,17 +75,17 @@ static int resized_filename(const char *filename, size_t size, char *buf)
 
         for (size_t i = 0; i < len; ++i) {
             if (k > size - 2)
-                return 0;
+                return false;
             if (i == pos)
                 i += 3;
             buf[k++] = filename[i];
         }
 
         buf[k] = '\0';
-        return 1;
+        return true;
     }
 
-    return 0;
+    return false;
 }
 
 static bool file_exists(const char *filepath)
@@ -104,29 +106,29 @@ static bool file_exists(const char *filepath)
 
 static bool is_skin_folder(const char *dir_path)
 {
-    char ini_path[512];
+    char ini_path[MAX_PATH];
     strcpy(ini_path, dir_path);
     strcat(ini_path, "/skin.ini");
 
     return file_exists(ini_path);
 }
 
-static int smaller_file(const char *file_path)
+static void smaller_file(const char *file_path)
 {
-    char new_file_path[128];
-    resized_filename(file_path, 128, new_file_path);
+    int ok;
+    char new_file_path[MAX_PATH];
+    resized_filename(file_path, MAX_PATH, new_file_path);
 
-    if (!overwrite) {
+    if (!flag_overwrite) {
         if (file_exists(new_file_path)) {
-            printf("Smaller version of %s already exists. Skipping...\n", file_path);
             ++files_skipped;
-            return 1;
+            return;
         }
     }
 
     printf("Resizing %s...\n", file_path);
 
-    int width, height, channels, ok;
+    int width, height, channels;
     ok = stbi_info(file_path, &width, &height, &channels);
 
     if (!ok) {
@@ -143,6 +145,7 @@ static int smaller_file(const char *file_path)
         new_height = 1;
 
     unsigned char *resized_image = (unsigned char *)malloc(new_width * new_height * channels);
+
     ok = stbir_resize_uint8(image, width, height, 0, resized_image, new_width,
                             new_height, 0, channels);
 
@@ -161,40 +164,39 @@ static int smaller_file(const char *file_path)
 
     free(resized_image);
     free(image);
-
-    return 1;
 }
 
-static int smaller_dir(const char *dir_path)
+void smaller_dir(const char *dir_path)
 {
 #ifdef _WIN32
-    HANDLE hfind;
-    WIN32_FIND_DATA file;
-    char dir_wildcard[512];
-
+    char dir_wildcard[MAX_PATH];
     strcpy(dir_wildcard, dir_path);
     strcat(dir_wildcard, "/*");
 
-    char filename[512];
+    HANDLE hfind;
+    WIN32_FIND_DATA file;
+    char file_path[MAX_PATH];
 
     if ((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
         do {
-            sprintf(filename, "%s/%s", dir_path, file.cFileName);
+            int ok = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
 
-            const char *extension = file_extension(filename);
+            if (ok >= MAX_PATH) {
+                put_error("File path is too long", file.cFileName);
+            }
+
+            if (ok < 0) {
+                put_error("Invalid characters in file path", file_path);
+            }
+
+            const char *extension = file_extension(file_path);
             if (extension == NULL)
                 continue;
 
-            if (strcmp(extension, "png") == 0 ||
-                strcmp(extension, "jpg") == 0) {
-                if (!is_twox_image(filename))
+            if (strcmp(extension, "png") == 0 || strcmp(extension, "jpg") == 0) {
+                if (!is_twox_image(file_path))
                     continue;
-                int ok = smaller_file(filename);
-
-                if (!ok) {
-                    put_error("Failed to generate resized image",
-                              file.cFileName);
-                }
+                smaller_file(file_path);
             }
         } while (FindNextFile(hfind, &file));
 
@@ -210,7 +212,7 @@ static int smaller_dir(const char *dir_path)
     }
 
     struct dirent *entry;
-    char filename[512];
+    char filename[MAX_PATH];
 
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG) {
@@ -220,26 +222,19 @@ static int smaller_dir(const char *dir_path)
             if (extension == NULL)
                 continue;
 
-            if (strcmp(extension, "png") == 0 ||
-                strcmp(extension, "jpg") == 0) {
+            if (strcmp(extension, "png") == 0 || strcmp(extension, "jpg") == 0) {
                 if (!is_twox_image(filename))
                     continue;
-
-                int ok = smaller_file(filename);
-                if (!ok) {
-                    put_error("Failed to generate resized image",
-                              entry->d_name);
-                }
+                smaller_file(filename);
             }
         }
     }
 
     closedir(dir);
 #endif
-    return 1;
 }
 
-static int concat_args(int argc, char **argv, size_t size, char *buf)
+static bool concat_args(int argc, char **argv, size_t size, char *buf)
 {
     size_t k = 0;
     for (int i = 1; i < argc; ++i) {
@@ -248,19 +243,19 @@ static int concat_args(int argc, char **argv, size_t size, char *buf)
         if (argv[i][0] == '-')
             continue;
         if (k > size - 2)
-            return 0;
+            return false;
         if (i > 1)
             buf[k++] = ' ';
 
         for (size_t j = 0; j < len; ++j) {
             if (k > size - 2)
-                return 0;
+                return false;
             buf[k++] = argv[i][j];
         }
     }
 
     buf[k] = '\0';
-    return 1;
+    return true;
 }
 
 static inline void help(void)
@@ -274,6 +269,7 @@ static inline void help(void)
            "\t    --help     \t\tDisplay this menu.\n"
            "\t    --version  \t\tDisplay version.\n",
            PROGRAM_NAME);
+    exit(0);
 }
 
 static inline void version(void)
@@ -281,32 +277,32 @@ static inline void version(void)
     printf("%s %s\n"
            "(c) toiletbril %s\n",
            PROGRAM_NAME, VERSION, GITHUB);
+    exit(0);
 }
 
-static int set_flag(const char *str)
+static bool set_flag(const char *str)
 {
     if (str[0] != '-')
-        return 0;
+        return false;
 
     int len = strlen(str);
 
     for (int i = 1; i < len; ++i) {
         switch (str[i]) {
             case 'o': {
-                overwrite = true;
+                flag_overwrite = true;
             } break;
 
             case '-': {
                 if (strcmp(str, "--help") == 0) {
                     help();
-                    exit(0);
                 }
                 else if (strcmp(str, "--overwrite") == 0) {
-                    overwrite = true;
+                    flag_overwrite = true;
+                    return false;
                 }
                 else if (strcmp(str, "--version") == 0) {
                     version();
-                    exit(0);
                 }
                 else {
                     fprintf(stderr,
@@ -327,7 +323,7 @@ static int set_flag(const char *str)
         }
     }
 
-    return 1;
+    return true;
 }
 
 int main(int argc, char **argv)
@@ -341,20 +337,16 @@ int main(int argc, char **argv)
         set_flag(argv[i]);
     }
 
-    char dir_path[512];
-    concat_args(argc, argv, 512, dir_path);
+    char dir_path[MAX_PATH];
+    concat_args(argc, argv, MAX_PATH, dir_path);
 
     if (!is_skin_folder(dir_path)) {
         put_error("Is not a skin folder", dir_path);
     }
 
-    int ok = smaller_dir(dir_path);
+    smaller_dir(dir_path);
 
-    if (!ok) {
-        put_error("Something went wrong while traversing directory", dir_path);
-    }
-
-    printf("%s: Successfully traversed %s.\nFiles created: %zu, skipped: %zu.\n",
+    printf("%s: Successfully traversed '%s'. Files created: %zu, skipped: %zu.\n",
            PROGRAM_NAME, dir_path, files_created, files_skipped);
     return 0;
 }
