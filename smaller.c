@@ -113,8 +113,6 @@ static bool is_skin_folder(const char *dir_path)
 
 static int smaller_file(const char *file_path)
 {
-    int width, height, channels, ok;
-
     char new_file_path[128];
     resized_filename(file_path, 128, new_file_path);
 
@@ -128,6 +126,7 @@ static int smaller_file(const char *file_path)
 
     printf("Resizing %s...\n", file_path);
 
+    int width, height, channels, ok;
     ok = stbi_info(file_path, &width, &height, &channels);
 
     if (!ok) {
@@ -144,7 +143,6 @@ static int smaller_file(const char *file_path)
         new_height = 1;
 
     unsigned char *resized_image = (unsigned char *)malloc(new_width * new_height * channels);
-
     ok = stbir_resize_uint8(image, width, height, 0, resized_image, new_width,
                             new_height, 0, channels);
 
@@ -353,7 +351,7 @@ int main(int argc, char **argv)
     int ok = smaller_dir(dir_path);
 
     if (!ok) {
-        put_error("Something went wrong while traversing directory", argv[1]);
+        put_error("Something went wrong while traversing directory", dir_path);
     }
 
     printf("%s: Successfully traversed %s.\nFiles created: %zu, skipped: %zu.\n",
