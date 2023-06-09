@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FLAGS="-O2 -Oz -Wall -lm"
+FLAGS="-O2 -Oz -Wall -Wextra -pedantic -lm"
 
 mkdir -p bin
 

@@ -21,7 +21,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#define VERSION "0.7"
+#define VERSION "0.7.2"
 #define GITHUB "<https://github.com/toiletbril>"
 
 static bool flag_overwrite = false;
@@ -35,6 +35,7 @@ static inline void put_error(const char *m, const char *filename)
     exit(1);
 }
 
+// Returns file extension if there is one or `NULL`
 static const char *file_extension(const char *filename)
 {
     size_t len = strlen(filename);
@@ -50,7 +51,8 @@ static const char *file_extension(const char *filename)
     return NULL;
 }
 
-static bool is_twox_image(const char *filename)
+// Returns `true` if there is @2x before file extension
+static bool has_twox(const char *filename)
 {
     const char *ext = strrchr(filename, '.');
 
@@ -64,9 +66,25 @@ static bool is_twox_image(const char *filename)
     return false;
 }
 
+static bool is_twox_image(const char *filename)
+{
+    const char *extension = file_extension(filename);
+    if (extension == NULL)
+        return false;
+
+    if (!(strcmp(extension, "png") == 0 || strcmp(extension, "jpg") == 0))
+        return false;
+
+    if (!has_twox(filename))
+        return false;
+
+    return true;
+}
+
+// Puts filename without @2x into `buf`. Returns false if `size` is exceeded or there is no @2x
 static bool resized_filename(const char *filename, size_t size, char *buf)
 {
-    int len          = strlen(filename);
+    size_t len       = strlen(filename);
     char *twox_index = strstr(filename, "@2x");
 
     if (twox_index != NULL) {
@@ -115,7 +133,6 @@ static bool is_skin_folder(const char *dir_path)
 
 static void smaller_file(const char *file_path)
 {
-    int ok;
     char new_file_path[MAX_PATH];
     resized_filename(file_path, MAX_PATH, new_file_path);
 
@@ -128,7 +145,7 @@ static void smaller_file(const char *file_path)
 
     printf("Resizing %s...\n", file_path);
 
-    int width, height, channels;
+    int width, height, channels, ok;
     ok = stbi_info(file_path, &width, &height, &channels);
 
     if (!ok) {
@@ -145,6 +162,10 @@ static void smaller_file(const char *file_path)
         new_height = 1;
 
     unsigned char *resized_image = (unsigned char *)malloc(new_width * new_height * channels);
+
+    if (resized_image == NULL) {
+        put_error("Could not allocate memory for resized image", file_path);
+    }
 
     ok = stbir_resize_uint8(image, width, height, 0, resized_image, new_width,
                             new_height, 0, channels);
@@ -166,6 +187,7 @@ static void smaller_file(const char *file_path)
     free(image);
 }
 
+// Calls `smaller_file` on each @2x skin element in a directory
 void smaller_dir(const char *dir_path)
 {
 #ifdef _WIN32
@@ -180,18 +202,11 @@ void smaller_dir(const char *dir_path)
     if ((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
         do {
             int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
-
             if (count < 0) {
                 put_error("Invalid characters in file path", file_path);
             }
 
-            const char *extension = file_extension(file_path);
-            if (extension == NULL)
-                continue;
-
-            if (strcmp(extension, "png") == 0 || strcmp(extension, "jpg") == 0) {
-                if (!is_twox_image(file_path))
-                    continue;
+            if (is_twox_image(file_path)) {
                 smaller_file(file_path);
             }
         } while (FindNextFile(hfind, &file));
@@ -213,7 +228,6 @@ void smaller_dir(const char *dir_path)
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG) {
             int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, entry->d_name);
-
             if (count >= MAX_PATH) {
                 put_error("File path is too long", entry->d_name);
             }
@@ -222,13 +236,7 @@ void smaller_dir(const char *dir_path)
                 put_error("Invalid characters in file path", file_path);
             }
 
-            const char *extension = file_extension(file_path);
-            if (extension == NULL)
-                continue;
-
-            if (strcmp(extension, "png") == 0 || strcmp(extension, "jpg") == 0) {
-                if (!is_twox_image(file_path))
-                    continue;
+            if (is_twox_image(file_path)) {
                 smaller_file(file_path);
             }
         }
@@ -238,6 +246,8 @@ void smaller_dir(const char *dir_path)
 #endif
 }
 
+// Adds space between args and concatenates them to `buf`. Skips ones that start with '-'
+// Returns `false` if size is exceeded
 static bool concat_args(int argc, char **argv, size_t size, char *buf)
 {
     size_t k = 0;
@@ -284,6 +294,7 @@ static inline void version(void)
     exit(0);
 }
 
+// Returns false if `str` is not a flag, otherwise sets global variables
 static bool set_flag(const char *str)
 {
     if (str[0] != '-')
@@ -297,6 +308,7 @@ static bool set_flag(const char *str)
                 flag_overwrite = true;
             } break;
 
+            // Long arguments go here
             case '-': {
                 if (strcmp(str, "--help") == 0) {
                     help();
@@ -343,12 +355,13 @@ int main(int argc, char **argv)
     }
 
     char dir_path[MAX_PATH];
-    if(!concat_args(argc, argv, MAX_PATH, dir_path)) {
-        fprintf(stderr, "%s: ERROR: File path is too long.\n",
+    if (!concat_args(argc, argv, MAX_PATH, dir_path)) {
+        fprintf(stderr, "%s: ERROR: Directory path is too long.\n",
                 PROGRAM_NAME);
         exit(1);
     };
 
+    // NOTE: This shows up even when folder does not exist or is a file
     if (!is_skin_folder(dir_path)) {
         put_error("Is not a skin folder", dir_path);
     }
