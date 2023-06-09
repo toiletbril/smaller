@@ -106,7 +106,7 @@ static bool resized_filename(const char *filename, size_t size, char *buf)
     return false;
 }
 
-static bool file_exists(const char *filepath)
+static inline bool file_exists(const char *filepath)
 {
 #ifdef _WIN32
     DWORD file = GetFileAttributes(filepath);
@@ -122,7 +122,7 @@ static bool file_exists(const char *filepath)
     return false;
 }
 
-static bool is_skin_folder(const char *dir_path)
+static inline bool is_skin_folder(const char *dir_path)
 {
     char ini_path[MAX_PATH];
     strcpy(ini_path, dir_path);
@@ -297,6 +297,7 @@ static inline void version(void)
 // Returns false if `str` is not a flag, otherwise sets global variables
 static bool set_flag(const char *str)
 {
+    // NOTE: If there is just '-' in argv it will be ignored
     if (str[0] != '-')
         return false;
 
