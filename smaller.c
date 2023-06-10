@@ -7,6 +7,7 @@
     #define PROGRAM_NAME "smaller"
     #define MAX_PATH 1024
     #include <dirent.h>
+    #include <errno.h>
     #include <sys/stat.h>
 #endif
 
@@ -218,7 +219,7 @@ void smaller_dir(const char *dir_path)
     dir = opendir(dir_path);
 
     if (dir == NULL) {
-        perror(dir_path);
+        put_error(strerror(errno), dir_path);
         exit(1);
     }
 
