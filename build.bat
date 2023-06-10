@@ -1,7 +1,7 @@
 @echo off
 
 set CC=clang
-set FLAGS=-O2 -Oz -Wall
+set FLAGS=-O2 -Oz -Wall -pedantic
 
 if not exist bin mkdir bin
 
