@@ -280,9 +280,9 @@ static inline void help(void)
            "outputs `png`.\n"
            "\n"
            "FLAGS:\n"
-           "\t-o, --overwrite\t\tOverwrite existing files.\n"
-           "\t    --help     \t\tDisplay this menu.\n"
-           "\t    --version  \t\tDisplay version.\n",
+           "  -o, --overwrite\tOverwrite existing files.\n"
+           "      --help     \tDisplay this menu.\n"
+           "      --version  \tDisplay version.\n",
            PROGRAM_NAME);
     exit(0);
 }
