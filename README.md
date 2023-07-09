@@ -1,18 +1,18 @@
 # smaller
 
-Creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element in an osu! skin. Supports both `jpg` and `png`, outputs `png`.
+A tiny CLI tool that creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element in an osu! skin.
 
 ## Usage
 ```console
-$ smaller <path to osu! skin>
+$ ./smaller <path to osu! skin>
 ```
 
 **If a skin folder contains weird symbols in it's name, or you have some other error:**
 
-`cd` to it first, and then use `smaller .`:
+`cd` to it first, and then use `.../smaller .`:
 ```console
 $ cd <path to osu! skin>
-$ smaller .
+$ <path to smaller executable> .
 ```
 
 ## Building
