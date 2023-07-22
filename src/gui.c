@@ -34,7 +34,9 @@ bool use_dialog(void)
     const char *skin_ini_path = noc_file_dialog_open(FLAGS, "skin.ini\0*.ini", ".", PROGRAM_NAME);
 
     char dir_path[MAX_PATH];
-    get_dir(skin_ini_path, dir_path, MAX_PATH);
+    if (!get_dir(skin_ini_path, dir_path, MAX_PATH)) {
+        put_error("Directory path is too long.");
+    }
 
     size_t files_created = 0;
     size_t files_skipped = 0;

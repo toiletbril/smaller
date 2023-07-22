@@ -22,10 +22,7 @@ int main(int argc, char **argv)
 
     char dir_path[MAX_PATH];
     if (!concat_args(argc, argv, MAX_PATH, dir_path)) {
-        fprintf(stderr, "%s: ERROR: Directory path is too long.\n",
-                PROGRAM_NAME);
-
-        exit(1);
+        put_error("Directory path is too long.");
     };
 
     // NOTE: This shows up even when folder does not exist or is a file
