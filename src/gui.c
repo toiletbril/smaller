@@ -18,7 +18,8 @@ static bool get_dir(const char *file_path, char *buf, size_t size)
         for (size_t j = 0; j < strlen(DIR_SEP); ++j) {
             if (file_path[i] == DIR_SEP[j] && size >= i + 1) {
                 memcpy(buf, file_path, i * sizeof(char));
-                buf[i + 1] = '\0';
+
+                buf[i] = '\0';
 
                 return true;
             }
