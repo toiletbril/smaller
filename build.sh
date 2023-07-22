@@ -1,8 +1,12 @@
 #!/bin/bash
 
-FLAGS="-O2 -Oz -Wall -Wextra -pedantic -lm"
+CC="clang"
+FLAGS="-O2 -Os -Wall -Wextra -Iexternal"
+LIBS="$(pkg-config --cflags --libs gtk+-3.0) -lm"
+FILES="src/main.c src/cli.c src/smaller.c src/gui.c"
 
 mkdir -p bin
 
 set -xe
-cc $FLAGS smaller.c -o bin/smaller
+
+$CC $FLAGS $LIBS $FILES -o bin/smaller
