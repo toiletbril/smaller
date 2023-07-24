@@ -25,16 +25,16 @@ $ <path to smaller executable> .
 
 ## Building
 
-POSIX:
+### POSIX
 
+If you wish to have a file dialog:
 - `gtk+-3.0`
-- `clang`
 
 ```console
 $ ./build.sh
 ```
 
-Windows (`MinGW/Clang`):
+### Windows (`MinGW/Clang`)
 ```console
 > ./build.bat
 ```
