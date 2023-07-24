@@ -15,7 +15,7 @@
     #include <sys/stat.h>
 #endif
 
-#define VERSION "1.0.2"
+#define VERSION "1.1.0"
 #define GITHUB  "<https://github.com/toiletbril>"
 
 #endif // COMMON_H

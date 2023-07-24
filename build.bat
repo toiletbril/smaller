@@ -9,4 +9,4 @@ if not exist bin mkdir bin
 
 @echo on
 
-%CC% %FLAGS% %LIBS% %FILES% -o bin/smaller.exe
+%CC% %FLAGS% %FILES% -o bin/smaller.exe %LIBS%

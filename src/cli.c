@@ -36,7 +36,7 @@ bool concat_args(int argc, char **argv, size_t size, char *buf)
 static inline void help(void)
 {
     printf(
-        "USAGE: %s <skin directory>\n"
+        "USAGE: %s [-options] <skin directory>\n"
         "Create @1x osu! skin elements from @2x elements. Works with `png` and `jpg`, "
         "outputs `png`.\n"
         "\n"
@@ -79,26 +79,18 @@ bool set_flag(const char *str)
                 }
                 else if (strcmp(str, "--overwrite") == 0) {
                     flag_overwrite = true;
-                    return false;
+                    return true;
                 }
                 else if (strcmp(str, "--version") == 0) {
                     version();
                 }
                 else {
-                    fprintf(stderr,
-                            "%s: Unknown option %s\n"
-                            "Try '%s --help'.\n",
-                            PROGRAM_NAME, str, PROGRAM_NAME);
-                    exit(1);
+                    put_error("Unknown option.", str);
                 }
             } break;
 
             default: {
-                fprintf(stderr,
-                        "%s: Unknown option -%c\n"
-                        "Try '%s --help'.\n",
-                        PROGRAM_NAME, str[i], PROGRAM_NAME);
-                exit(1);
+                put_error("Unknown option.", str);
             }
         }
     }
