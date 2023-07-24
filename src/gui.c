@@ -1,3 +1,5 @@
+#ifndef NO_DIALOG
+
 #include "gui.h"
 
 #define NOC_FILE_DIALOG_IMPLEMENTATION
@@ -35,7 +37,7 @@ bool use_dialog(void)
 
     char dir_path[MAX_PATH];
     if (!get_dir(skin_ini_path, dir_path, MAX_PATH)) {
-        put_error("Directory path is too long.");
+        put_error("Directory path is too long.", "ERROR");
     }
 
     size_t files_created = 0;
@@ -50,7 +52,9 @@ bool use_dialog(void)
         return true;
     } else {
         put_error("Is not a skin folder", dir_path);
-
-        return false;
     }
+
+    return false;
 }
+
+#endif // NO_DIALOG
