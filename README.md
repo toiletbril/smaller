@@ -2,7 +2,7 @@
 
 A tool that creates `<skin element>.png` from `<skin element>@2x.png` for every `@2x.png` element in an osu! skin.
 
-<[Download Page](https://github.com/toiletbril/smaller/releases/latest)>
+Prebuilt binaries can be [downloaded here](https://github.com/toiletbril/smaller/releases/latest).
 
 ## Usage
 
@@ -39,4 +39,4 @@ $ ./build.sh
 > ./build.bat
 ```
 
-awesome [stb headers source](https://github.com/nothings/stb) :3c
+Awesome [stb headers source](https://github.com/nothings/stb) :3c

@@ -3,7 +3,7 @@
 FLAGS="-O2 -Os -Wall -Wextra -Iexternal"
 
 if pkg-config --exists "gtk+-3.0"; then
-    USE_GTK=$(pkg-config --cflags --libs "gtk+-3.0")
+    USE_GTK="$(pkg-config --cflags --libs "gtk+-3.0")"
 else
     echo "WARNING: gtk+-3.0 is not found, using -DNO_DIALOG."
     USE_GTK="-DNO_DIALOG"
