@@ -35,6 +35,10 @@ bool use_dialog(void)
 {
     const char *skin_ini_path = noc_file_dialog_open(FLAGS, "skin.ini\0*.ini", ".", PROGRAM_NAME);
 
+    if (skin_ini_path == NULL) {
+        put_error("No file selected.", "ERROR");
+    }
+
     char dir_path[MAX_PATH];
     if (!get_dir(skin_ini_path, dir_path, MAX_PATH)) {
         put_error("Directory path is too long.", "ERROR");
@@ -53,8 +57,6 @@ bool use_dialog(void)
     } else {
         put_error("Is not a skin folder", dir_path);
     }
-
-    return false;
 }
 
 #endif // NO_DIALOG
