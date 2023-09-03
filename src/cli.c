@@ -43,7 +43,11 @@ static inline void help(void)
         "FLAGS:\n"
         "  -o, --overwrite\tOverwrite existing files.\n"
         "      --help     \tDisplay this menu.\n"
-        "      --version  \tDisplay version.\n",
+        "      --version  \tDisplay version.\n"
+#ifndef NO_DIALOG
+        "\nLaunch without arguments to use a GUI.\n"
+#endif
+        ,
         PROGRAM_NAME);
     exit(0);
 }
@@ -51,8 +55,11 @@ static inline void help(void)
 static inline void version(void)
 {
     printf(
-        "%s %s\n"
-        "(c) toiletbril %s\n",
+        "%s %s"
+#ifdef NO_DIALOG
+        " no GUI"
+#endif
+        "\n(c) toiletbril %s\n",
         PROGRAM_NAME, VERSION, GITHUB);
     exit(0);
 }

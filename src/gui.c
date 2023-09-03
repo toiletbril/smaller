@@ -57,6 +57,8 @@ bool use_dialog(void)
     } else {
         put_error("Is not a skin folder", dir_path);
     }
+
+    return false;
 }
 
 #endif // NO_DIALOG

@@ -17,9 +17,9 @@ int main(int argc, char **argv)
 {
     if (argc < 2) {
 #ifndef NO_DIALOG
-        return use_dialog();
+        return !use_dialog();
 #else
-        put_error("Built without dialog. Try '--help' for more information.", "ERROR");
+        put_error("Not enough arguments. Try '--help' for more information.", "ERROR");
 #endif
     }
 
