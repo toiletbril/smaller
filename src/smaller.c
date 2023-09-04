@@ -1,4 +1,5 @@
 #include "smaller.h"
+#include "common.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
@@ -6,8 +7,6 @@
 #include "stb_image_write.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
-extern bool flag_overwrite;
 
 // Returns file extension if there is one or `NULL`
 static const char *file_extension(const char *filename)
@@ -56,7 +55,7 @@ static bool is_twox_image(const char *filename)
 }
 
 // Puts filename without @2x into `buf`. Returns false if `size` is exceeded or there is no @2x
-static bool resized_filename(const char *filename, size_t size, char *buf)
+static bool get_resized_filename(const char *filename, size_t size, char *buf)
 {
     size_t len       = strlen(filename);
     char *twox_index = strstr(filename, "@2x");
@@ -108,7 +107,7 @@ bool is_skin_folder(const char *dir_path)
 static void smaller_file(const char *file_path, size_t *files_created, size_t *files_skipped)
 {
     char new_file_path[MAX_PATH];
-    resized_filename(file_path, MAX_PATH, new_file_path);
+    get_resized_filename(file_path, MAX_PATH, new_file_path);
 
     if (!flag_overwrite) {
         if (file_exists(new_file_path)) {
@@ -117,13 +116,15 @@ static void smaller_file(const char *file_path, size_t *files_created, size_t *f
         }
     }
 
-    printf("Resizing %s...\n", file_path);
+    if (flag_verbose) {
+        printf("%s: Resizing '%s'...\n", PROGRAM_NAME, file_path);
+    }
 
     int width, height, channels, ok;
     ok = stbi_info(file_path, &width, &height, &channels);
 
     if (!ok) {
-        put_error(stbi_failure_reason(), file_path);
+        put_item_and_die(stbi_failure_reason(), file_path);
     }
 
     unsigned char *image = stbi_load(file_path, &width, &height, &channels, 0);
@@ -138,21 +139,21 @@ static void smaller_file(const char *file_path, size_t *files_created, size_t *f
     unsigned char *resized_image = (unsigned char *)malloc(new_width * new_height * channels);
 
     if (resized_image == NULL) {
-        put_error("Could not allocate memory for resized image", file_path);
+        put_item_and_die("Could not allocate memory for resized image", file_path);
     }
 
     ok = stbir_resize_uint8(image, width, height, 0, resized_image, new_width,
                             new_height, 0, channels);
 
     if (!ok) {
-        put_error("Could not resize image", file_path);
+        put_item_and_die("Could not resize image", file_path);
     }
 
     ok = stbi_write_png(new_file_path, new_width, new_height, channels,
                         resized_image, 0);
 
     if (!ok) {
-        put_error("Failed to write resized image", new_file_path);
+        put_item_and_die("Failed to write resized image", new_file_path);
     }
 
     (*files_created)++;
@@ -177,7 +178,7 @@ void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skip
         do {
             int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
             if (count < 0) {
-                put_error("Invalid characters in file path", file_path);
+                put_item_and_die("Invalid characters in file path", file_path);
             }
 
             if (is_twox_image(file_path)) {
@@ -192,7 +193,7 @@ void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skip
     dir = opendir(dir_path);
 
     if (dir == NULL) {
-        put_error(strerror(errno), dir_path);
+        put_item_and_die(strerror(errno), dir_path);
         exit(1);
     }
 
@@ -203,11 +204,11 @@ void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skip
         if (entry->d_type == DT_REG) {
             int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, entry->d_name);
             if (count >= MAX_PATH) {
-                put_error("File path is too long", entry->d_name);
+                put_item_and_die("File path is too long", entry->d_name);
             }
 
             if (count < 0) {
-                put_error("Invalid characters in file path", file_path);
+                put_item_and_die("Invalid characters in file path", file_path);
             }
 
             if (is_twox_image(file_path)) {

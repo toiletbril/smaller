@@ -1,17 +1,24 @@
 #include "common.h"
 #include "cli.h"
 
-void put_error(const char *m, const char *filename)
+void put_item_and_die(const char *m, const char *item)
 {
-    fprintf(stderr, "%s: %s: %s\n", PROGRAM_NAME, filename, m);
+    fprintf(stderr, "%s: %s: %s\n", PROGRAM_NAME, item, m);
     exit(1);
 }
 
-// Adds space between args and concatenates them to `buf`. Skips ones that start with '-'
+void put_and_die(const char *m)
+{
+    fprintf(stderr, "%s: %s\n", PROGRAM_NAME, m);
+    exit(1);
+}
+
 // Returns `false` if size is exceeded
 bool concat_args(int argc, char **argv, size_t size, char *buf)
 {
     size_t k = 0;
+    bool prev_found = false;
+
     for (int i = 1; i < argc; ++i) {
         size_t len = strlen(argv[i]);
 
@@ -19,29 +26,35 @@ bool concat_args(int argc, char **argv, size_t size, char *buf)
             continue;
         if (k > size - 2)
             return false;
-        if (i > 1)
+        if (prev_found) {
             buf[k++] = ' ';
+            prev_found = false;
+        }
 
         for (size_t j = 0; j < len; ++j) {
             if (k > size - 2)
                 return false;
+            prev_found = true;
             buf[k++] = argv[i][j];
         }
+
     }
 
     buf[k] = '\0';
     return true;
 }
 
-static inline void help(void)
+static inline void put_help_and_die(void)
 {
     printf(
-        "USAGE: %s [-options] <skin directory>\n"
-        "Create @1x osu! skin elements from @2x elements. Works with `png` and `jpg`, "
-        "outputs `png`.\n"
+        "USAGE\n"
+        "  %s [-options] <skin directory>\n"
+        "  Create @1x osu! skin elements from @2x elements.\n"
+        "  Supported formats are `png` and `jpg`, output is always `png`.\n"
         "\n"
-        "FLAGS:\n"
+        "FLAGS\n"
         "  -o, --overwrite\tOverwrite existing files.\n"
+        "  -v, --verbose  \tVerbose output.\n"
         "      --help     \tDisplay this menu.\n"
         "      --version  \tDisplay version.\n"
 #ifndef NO_DIALOG
@@ -52,7 +65,7 @@ static inline void help(void)
     exit(0);
 }
 
-static inline void version(void)
+static inline void put_version_and_die(void)
 {
     printf(
         "%s %s"
@@ -67,7 +80,7 @@ static inline void version(void)
 // Returns false if `str` is not a flag, otherwise sets global variables
 bool set_flag(const char *str)
 {
-    // NOTE: If there is just '-' in argv it will be ignored
+    // If there is just '-' in argv it will be ignored
     if (str[0] != '-')
         return false;
 
@@ -75,29 +88,33 @@ bool set_flag(const char *str)
 
     for (int i = 1; i < len; ++i) {
         switch (str[i]) {
-            case 'o': {
-                flag_overwrite = true;
-            } break;
+            case 'o': flag_overwrite = true; break;
+            case 'v': flag_verbose = true; break;
 
             // Long arguments go here
             case '-': {
-                if (strcmp(str, "--help") == 0) {
-                    help();
-                }
-                else if (strcmp(str, "--overwrite") == 0) {
+                if (strcmp(str, "--overwrite") == 0) {
                     flag_overwrite = true;
                     return true;
                 }
+                else if (strcmp(str, "--verbose") == 0) {
+                    flag_verbose = true;
+                    return true;
+                }
+
+                else if (strcmp(str, "--help") == 0) {
+                    put_help_and_die();
+                }
                 else if (strcmp(str, "--version") == 0) {
-                    version();
+                    put_version_and_die();
                 }
                 else {
-                    put_error("Unknown option.", str);
+                    put_item_and_die("Unknown option.", str);
                 }
             } break;
 
             default: {
-                put_error("Unknown option.", str);
+                put_item_and_die("Unknown option.", str);
             }
         }
     }

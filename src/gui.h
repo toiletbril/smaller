@@ -6,6 +6,6 @@
 #include "common.h"
 #include "smaller.h"
 
-bool use_dialog(void);
+int dialog_main(void);
 
 #endif // GUI_H

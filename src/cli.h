@@ -7,12 +7,11 @@
 #include <string.h>
 
 extern bool flag_overwrite;
+extern bool flag_verbose;
 
-// Print out error and exit.
-void put_error(const char *m, const char *filename);
-// Contatenate argv into a single buffer.
+void put_item_and_die(const char *m, const char *item);
+void put_and_die(const char *m);
 bool concat_args(int argc, char **argv, size_t size, char *buf);
-// Set global state if flag matches.
 bool set_flag(const char *str);
 
 #endif // CLI_H

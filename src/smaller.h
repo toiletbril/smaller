@@ -8,12 +8,11 @@
 #include "smaller.h"
 #include "cli.h"
 
-// Traverse a folder.
+extern bool flag_overwrite;
+extern bool flag_verbose;
+
 void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skipped);
-
-// Check if a folder contains 'skin.ini' file.
 bool is_skin_folder(const char *dir_path);
-
 bool file_exists(const char *filepath);
 
 #endif // SMALLER_H

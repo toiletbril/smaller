@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FLAGS="-O2 -Os -Wall -Wextra -Iexternal"
+FLAGS="-Os -Wall -Wextra -Iexternal"
 
 if pkg-config --exists "gtk+-3.0"; then
     USE_GTK="$(pkg-config --cflags --libs "gtk+-3.0")"

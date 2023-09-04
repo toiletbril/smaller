@@ -20,9 +20,7 @@ static bool get_dir(const char *file_path, char *buf, size_t size)
         for (size_t j = 0; j < strlen(DIR_SEP); ++j) {
             if (file_path[i] == DIR_SEP[j] && size >= i + 1) {
                 memcpy(buf, file_path, i * sizeof(char));
-
                 buf[i] = '\0';
-
                 return true;
             }
         }
@@ -31,17 +29,17 @@ static bool get_dir(const char *file_path, char *buf, size_t size)
     return false;
 }
 
-bool use_dialog(void)
+int dialog_main(void)
 {
     const char *skin_ini_path = noc_file_dialog_open(FLAGS, "skin.ini\0*.ini", ".", PROGRAM_NAME);
 
     if (skin_ini_path == NULL) {
-        put_error("No file selected.", "ERROR");
+        put_and_die("No file selected.");
     }
 
     char dir_path[MAX_PATH];
     if (!get_dir(skin_ini_path, dir_path, MAX_PATH)) {
-        put_error("Directory path is too long.", "ERROR");
+        put_and_die("Directory path is too long.");
     }
 
     size_t files_created = 0;
@@ -53,12 +51,12 @@ bool use_dialog(void)
         printf("%s: Successfully traversed '%s'. Files created: %zu, skipped: %zu.\n",
                PROGRAM_NAME, dir_path, files_created, files_skipped);
 
-        return true;
+        return 0;
     } else {
-        put_error("Is not a skin folder", dir_path);
+        put_item_and_die("Is not a skin folder", dir_path);
     }
 
-    return false;
+    return 1;
 }
 
 #endif // NO_DIALOG

@@ -1,8 +1,10 @@
 # smaller
 
 A tool that creates `<skin element>.png` from `<skin element>@2x.png` for every
-`@2x.png` element in an osu! skin, because you wanted to edit skins without
-desktop environment.
+`@2x.png` element in an osu! skin, because you definitely want to edit skins
+without desktop environment.
+
+It supports `png` and `jpg` images, output is always `png`.
 
 Prebuilt binaries can be [downloaded here](https://github.com/toiletbril/smaller/releases/latest).
 
@@ -12,11 +14,13 @@ Open the executable, then select `skin.ini` from skin folder you want to edit.
 That's it.
 
 ### CLI
+
 ```console
-$ ./smaller [-o] <path to osu! skin>
+$ ./smaller [-ov] <path to osu! skin>
 ```
 
 - `-o` to overwrite all files.
+- `-v` to display more info about each file.
 
 **If the skin directory name contains weird symbols, or you have other
 errors:**
@@ -31,7 +35,7 @@ $ <path to smaller executable> .
 
 ### POSIX
 
-Required if you wish to have a file dialog:
+Required only if you wish to have a file dialog:
 - `gtk+-3.0`
 
 ```console

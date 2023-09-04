@@ -5,7 +5,7 @@
     #define PROGRAM_NAME "smaller.exe"
     #define MAX_PATH     256
     #define DIR_SEP      "\\/"
-    #include <Windows.h>
+    #include <windows.h>
 #else
     #define PROGRAM_NAME "smaller"
     #define MAX_PATH     1024
@@ -15,7 +15,7 @@
     #include <sys/stat.h>
 #endif
 
-#define VERSION "1.1.1"
+#define VERSION "1.2.0"
 #define GITHUB  "<https://github.com/toiletbril>"
 
 #endif // COMMON_H
