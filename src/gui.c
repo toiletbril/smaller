@@ -42,14 +42,11 @@ int dialog_main(void)
         put_and_die("Directory path is too long.");
     }
 
-    size_t files_created = 0;
-    size_t files_skipped = 0;
-
     if (is_skin_folder(dir_path)) {
-        smaller_dir(dir_path, &files_created, &files_skipped);
+        smaller_dir(dir_path);
 
-        printf("%s: Successfully traversed '%s'. Files created: %zu, skipped: %zu.\n",
-               PROGRAM_NAME, dir_path, files_created, files_skipped);
+        put_message("Successfully traversed '%s'. Files created: %zu, skipped: %zu.\n",
+                dir_path, files_created, files_skipped);
 
         return 0;
     } else {
