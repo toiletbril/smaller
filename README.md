@@ -40,12 +40,12 @@ Required only if you wish to have a file dialog:
 - `gtk+-3.0`
 
 ```console
-$ ./build.sh
+$ ./build.sh <auto/gui/nogui> [debug]
 ```
 
 ### Windows (`MinGW/Clang`)
 ```console
-> ./build.bat
+> ./build.bat <gui/nogui> [debug]
 ```
 
 Awesome [stb headers source](https://github.com/nothings/stb) :3c
