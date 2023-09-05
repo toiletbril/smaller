@@ -109,12 +109,14 @@ bool set_flag(const char *str)
                     put_version_and_die();
                 }
                 else {
-                    put_item_and_die("Unknown option.", str);
+                    put_message("Unknown option %s.", str);
+                    exit(1);
                 }
             } break;
 
             default: {
-                put_item_and_die("Unknown option.", str);
+                put_message("Unknown option -%c.", str[i]);
+                exit(1);
             }
         }
     }
