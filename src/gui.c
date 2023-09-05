@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
     #define NOC_FILE_DIALOG_WIN32
+#elif defined(__APPLE__)
+    #define NOC_FILE_DIALOG_OSX
 #else
     #define NOC_FILE_DIALOG_GTK
 #endif
