@@ -11,7 +11,10 @@
 extern bool flag_overwrite;
 extern bool flag_verbose;
 
-void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skipped);
+extern size_t files_created;
+extern size_t files_skipped;
+
+void smaller_dir(const char *dir_path);
 bool is_skin_folder(const char *dir_path);
 bool file_exists(const char *filepath);
 

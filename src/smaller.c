@@ -104,20 +104,23 @@ bool is_skin_folder(const char *dir_path)
     return file_exists(ini_path);
 }
 
-static void smaller_file(const char *file_path, size_t *files_created, size_t *files_skipped)
+static void smaller_file(const char *file_path)
 {
     char new_file_path[MAX_PATH];
     get_resized_filename(file_path, MAX_PATH, new_file_path);
 
     if (!flag_overwrite) {
         if (file_exists(new_file_path)) {
-            (*files_skipped)++;
+            if (flag_verbose) {
+                put_message("'%s' already exists, skipping.\n", new_file_path);
+            }
+            files_skipped++;
             return;
         }
     }
 
     if (flag_verbose) {
-        printf("%s: Resizing '%s'...\n", PROGRAM_NAME, file_path);
+        put_message("Resizing '%s'...\n", file_path);
     }
 
     int width, height, channels, ok;
@@ -156,37 +159,41 @@ static void smaller_file(const char *file_path, size_t *files_created, size_t *f
         put_item_and_die("Failed to write resized image", new_file_path);
     }
 
-    (*files_created)++;
+    files_created++;
 
     free(resized_image);
     free(image);
 }
 
 // Calls `smaller_file` on each @2x skin element in a directory
-void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skipped)
+void smaller_dir(const char *dir_path)
 {
 #ifdef _WIN32
     char dir_wildcard[MAX_PATH];
-    strcpy(dir_wildcard, dir_path);
-    strcat(dir_wildcard, "/*");
+    char *extensions[2] = { "/*.png", "/*.jpg" };
 
-    HANDLE hfind;
-    WIN32_FIND_DATA file;
-    char file_path[MAX_PATH];
+    for (size_t i = 0; i < 2; ++i) {
+        strcpy(dir_wildcard, dir_path);
+        strcat(dir_wildcard, extensions[i]);
 
-    if ((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
-        do {
-            int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
-            if (count < 0) {
-                put_item_and_die("Invalid characters in file path", file_path);
-            }
+        HANDLE hfind;
+        WIN32_FIND_DATA file;
+        char file_path[MAX_PATH];
 
-            if (is_twox_image(file_path)) {
-                smaller_file(file_path, files_created, files_skipped);
-            }
-        } while (FindNextFile(hfind, &file));
+        if ((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
+            do {
+                int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
+                if (count < 0) {
+                    put_item_and_die("Invalid characters in file path", file_path);
+                }
 
-        FindClose(hfind);
+                if (has_twox(file_path)) {
+                    smaller_file(file_path);
+                }
+            } while (FindNextFile(hfind, &file));
+
+            FindClose(hfind);
+        }
     }
 #else
     DIR *dir;
@@ -212,7 +219,7 @@ void smaller_dir(const char *dir_path, size_t *files_created, size_t *files_skip
             }
 
             if (is_twox_image(file_path)) {
-                smaller_file(file_path, files_created, files_skipped);
+                smaller_file(file_path);
             }
         }
     }
