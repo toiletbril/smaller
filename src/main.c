@@ -18,21 +18,17 @@ size_t files_skipped = 0;
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-#ifndef NO_DIALOG
-        return dialog_main();
-#else
-        put_and_die("Not enough arguments. Try '--help' for more information.");
-#endif
-    }
-
     bool has_args = false;
     for (int i = 1; i < argc; ++i) {
         has_args |= !set_flag(argv[i]);
     }
 
     if (!has_args) {
-        put_and_die("Not enough arguments. Try '--help'.");
+#ifndef NO_DIALOG
+        return dialog_main();
+#else
+        put_and_die("Not enough arguments. Try '--help' for more information.");
+#endif
     }
 
     char dir_path[MAX_PATH];

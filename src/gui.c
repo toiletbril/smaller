@@ -50,7 +50,7 @@ int dialog_main(void)
         smaller_dir(dir_path);
 
         put_message("Successfully traversed '%s'. Files created: %zu, skipped: %zu.\n",
-                dir_path, files_created, files_skipped);
+                    dir_path, files_created, files_skipped);
 
         return 0;
     } else {

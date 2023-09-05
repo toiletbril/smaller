@@ -132,12 +132,10 @@ static void smaller_file(const char *file_path)
 
     unsigned char *image = stbi_load(file_path, &width, &height, &channels, 0);
 
-    int new_width = width / 2;
-    if (new_width <= 0)
-        new_width = 1;
+    int new_width  = width / 2;
     int new_height = height / 2;
-    if (new_height <= 0)
-        new_height = 1;
+    if (new_width  <= 0) new_width  = 1;
+    if (new_height <= 0) new_height = 1;
 
     unsigned char *resized_image = (unsigned char *)malloc(new_width * new_height * channels);
 
@@ -170,7 +168,7 @@ void smaller_dir(const char *dir_path)
 {
 #ifdef _WIN32
     char dir_wildcard[MAX_PATH];
-    char *extensions[2] = { "/*.png", "/*.jpg" };
+    char *extensions[2] = { "\\*.png", "\\*.jpg" };
 
     for (size_t i = 0; i < 2; ++i) {
         strcpy(dir_wildcard, dir_path);
@@ -182,7 +180,7 @@ void smaller_dir(const char *dir_path)
 
         if ((hfind = FindFirstFile(dir_wildcard, &file)) != INVALID_HANDLE_VALUE) {
             do {
-                int count = snprintf(file_path, MAX_PATH, "%s/%s", dir_path, file.cFileName);
+                int count = snprintf(file_path, MAX_PATH, "%s\\%s", dir_path, file.cFileName);
                 if (count < 0) {
                     put_item_and_die("Invalid characters in file path", file_path);
                 }
