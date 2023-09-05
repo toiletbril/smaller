@@ -1,15 +1,15 @@
 #!/bin/bash
 
-FLAGS="-Os -Wall -Wextra -Iexternal"
-
-if pkg-config --exists "gtk+-3.0"; then
-    USE_GTK="$(pkg-config --cflags --libs "gtk+-3.0")"
+if pkg-config --exists 'gtk+-3.0'; then
+    GTK_FLAGS="$(pkg-config --cflags 'gtk+-3.0')"
+    GTK_LIBS="$(pkg-config --libs 'gtk+-3.0')"
 else
     echo "WARNING: gtk+-3.0 is not found, using -DNO_DIALOG."
-    USE_GTK="-DNO_DIALOG"
+    GTK_FLAGS="-DNO_DIALOG"
 fi
 
-LIBS="$USE_GTK -lm"
+FLAGS="-Os -Wall -Wextra -Iexternal $GTK_FLAGS"
+LIBS="-lm $GTK_LIBS"
 FILES="src/main.c src/cli.c src/smaller.c src/gui.c"
 
 mkdir -p bin

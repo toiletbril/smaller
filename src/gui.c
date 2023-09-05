@@ -43,6 +43,8 @@ int dialog_main(void)
     }
 
     if (is_skin_folder(dir_path)) {
+        put_message("Traversing directory '%s'...\n", dir_path);
+
         smaller_dir(dir_path);
 
         put_message("Successfully traversed '%s'. Files created: %zu, skipped: %zu.\n",

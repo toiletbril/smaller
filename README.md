@@ -36,6 +36,7 @@ $ <path to smaller executable> .
 ### POSIX
 
 Required only if you wish to have a file dialog:
+- `pkg-config`
 - `gtk+-3.0`
 
 ```console
